@@ -1,0 +1,11 @@
+.border_style_double{
+	border: 2px double #1E90FF;
+	padding: 3px;
+	margin-bottom: 5px;
+    height: 50ch;
+	width: 40ch;
+	}
+.select_style{
+	height: 50ch;
+	width: 20ch;
+}
