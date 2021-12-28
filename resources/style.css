@@ -1,0 +1,113 @@
+.border_style_double{
+	border: 2px double white;
+	padding: 3px;
+	margin-bottom: 5px;
+    height: 50ch;
+	width: 100ch;
+	display: inline-block;
+	overflow-y: scroll; /* прокрутка по вертикали */
+	}
+.select_style{
+	height: 50ch;
+	width: 35ch;
+	display: inline-block;
+	margin-bottom: 9px;
+	padding: 3px;
+}
+.msg_style{
+	height: 10ch;
+	width: 135ch;
+}
+.input_style{
+	height: 4ch;
+	width: 42ch;
+}
+
+/* Chat containers */
+.container {
+	border: 2px solid black;
+    background-color: cadetblue;
+    border-radius: 5px;
+    padding: 10px;
+	text-align: justify;
+    margin: 10px 0;
+	word-wrap: break-word;
+}
+
+/* Clear floats */
+.container::after {
+    content: "";
+    clear: both;
+    display: table;
+	
+}
+/* Style time text */
+.time-right {
+    float: right;
+    color: cornsilk;
+}
+
+.shrift-name{
+	font-family: Bradley Hand, cursive;
+	color: cornsilk;
+
+}
+.shrift-content{
+	font-family: URW Chancery L, cursive;
+	color: white;
+
+}
+
+.five {
+	padding: 50px 20px 50px 170px;
+	text-align: left;
+  } 
+  .five h1 {
+	font-family: 'Open Sans', sans-serif;
+	font-weight: 400;
+	position: relative;
+	color: #587493;
+	font-size: 2.5em;
+	font-weight: normal;
+	display: inline-block;
+	margin: 0;
+	line-height: 1;
+	padding: 8px 20px 8px 2px;
+	border-top: 4px solid;
+  }
+  .five h1:before {
+	content: "Lab6";
+	position: absolute;
+	top: -10px;
+	left: -160px;
+	font-size: 1.5em;
+	transform: rotate(-25deg);
+	font-family: 'Marck Script', cursive;
+  }
+  .five h1:after {
+	content: ""; 
+	position: absolute;
+	width: 120%;
+	height: 4px;
+	right: 0;
+	bottom: -4px;
+	background: #587493;
+  }
+  @media (max-width: 580px) {
+	.five {padding-left: 130px;}
+	.five h1 {font-size: 2em;}
+	.five h1:before {left: -130px;}
+  }
+  @media (max-width: 480px) {
+	.five {padding-left: 100px;}
+	.five h1 {
+	  font-size: 1.5em;
+	  padding-right: 10px;
+  }
+	.five h1:before {left: -100px;}
+  }
+  @media (max-width: 380px) {
+	.five {padding-left: 90px;}
+	.five h1 {font-size: 1.3em;}
+	.five h1:before {left: -88px;}
+  }

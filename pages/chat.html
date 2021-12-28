@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./style.css">
+    <title>Messenger</title>
+</head>
+<body class="d-flex h-100 text-center text-white bg-dark">
+    
+    <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+      <header class="mb-auto">
+        <div class="five">
+          <h1>Messenger</h1>
+        </div>
+      </header>
+      <br><br><br>
+      <main class="px-3">
+        <form>
+            <textarea name="nameUser" id="inputName" class="input_style" placeholder="Введите имя"></textarea>
+            <button id="BtnUpdate" class="btn btn-danger" style="margin-bottom: 3ch;">Изменить ник</button>
+            <br>
+            <textarea name="nameRoom" id="inputRoom" class="input_style" placeholder="Название комнаты"></textarea>
+            <button id="BtnJoin" class="btn btn-danger" style="margin-bottom: 3ch;">Подключиться</button>
+            <br>
+            <label name="nameCompanion" id="nameCompanion" class="input_style" placeholder="ТэТаТэТ"></label>
+            <button id="BtnLS" class="btn btn-danger" style="margin-bottom: 3ch;">Абщаца</button>
+            <br>
+            <div>
+                <div id="dialog" class="border_style_double"></div>
+                <select multiple name="name[]" class="select_style" id="selectName"></select>
+            </div>
+            <textarea name="message" id="message" class="msg_style" placeholder="Введите сообщение"></textarea>
+            <br>
+            <button id="BtnSend" class="btn btn-danger">Отправить</button>
+        </form>
+      </main><br><br><br>
+    
+      <footer class="mt-auto text-white-50">
+        <p>Messenger by <a href="https://vk.com/dipush01" class="text-white">Иргалиев А</a>.</p>
+      </footer>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>  
+        $(function(){
+            var socket = io.connect();  // при входе на страницу подключаемся к серверу (срабатывается событие connection)
+
+            var $message = $("#message");                    // обращается к текстовому полю для ввода смс
+            var $dialog = $("#dialog");                      // обращается к полю, куда будут выводиться все смс
+            var $nameUser = $("#inputName");                 // обращаемся к полю ввода нового имени
+            var $nameCompanion = $("#nameCompanion");       // обращаемся к полю имени собеседника
+            var $nameRoom = $("#inputRoom");                 // обращаемся к полю ввода комнаты
+            var $nameSelect = $('#selectName');              // обращение к селектору для выбора онлайн-клиентов
+            var componion = null;
+
+            // Вход в общий чат
+            socket.emit('join-room', "general");
+            // Обновление ника
+            document.getElementById("BtnUpdate").addEventListener("click", () => {UpdateNickname()});
+            function UpdateNickname(){
+                event.preventDefault(); // функция предотвращает стандартное поведение формы (обновление странички при нажатии)
+                if($nameUser.val())
+                    socket.emit('update-name-inroom', $nameUser.val());
+            }
+            // Сообщение пользователям, что клиент обновил ник
+            socket.on('new-nick', function(data){
+                $dialog.append("<div class=\"container\" style=\"text-align:center;\">Пользователь <b>" + data.user.name + " </b> поменял никнейм на <b>" + data.newName + "</b></div>");
+                socket.emit('update-users');
+            });
+            // Подключиться к комнате (создать комнату)
+            document.getElementById("BtnJoin").addEventListener("click", () => {JoinRoom()});
+            function JoinRoom(){
+                event.preventDefault(); // функция предотвращает стандартное поведение формы (обновление странички при нажатии)
+                if($nameRoom.val())
+                {
+                    socket.emit('leave-room');
+                    socket.emit('join-room', $nameRoom.val());
+                }  
+            }
+            // Отправить сообщение
+            document.getElementById("BtnSend").addEventListener("click", () => {SendMsg()});
+            function SendMsg(){
+                event.preventDefault(); // функция предотвращает стандартное поведение формы (обновление странички при нажатии)
+                if($message.val()){
+                    socket.emit('msg-room', {content: $message.val(), time: new Date().getHours() + ":" + new Date().getMinutes()+ ":" + new Date().getSeconds()});  // вызывает событие при нажатию на кнопку (отправка сообщение из текстового поля textarea)
+                    $message.val(''); // очищаем текстовое поле после отправки смс
+                } 
+            }
+            // Вывести сообщение пользователям
+            socket.on('add-msg', function(data){
+                $dialog.append("<div class=\"container\"><p class=\"shrift-name\">" + 
+                    data.User.name + "</p><p class=\"shrift-content\">" + 
+                        data.content + "</p><span class=\"time-right\">" + 
+                            data.time + "</span></div>");
+            });
+            // Получить всех пользователей, которые онлайн
+            socket.on('list-users', function(online) {
+                $nameSelect.empty();
+                for (let item of online) {       
+                    $nameSelect.append("<option value=\"" + item.id + "\">" + item.name + " [" + item.id + "]" + " </option>");
+                }
+            });
+            // Отслеживать нажатие по списку пользователей
+            document.getElementById('selectName').onchange=function () {getValue(this);}
+            function getValue(Obj){
+                $nameCompanion.empty();
+                componion = Obj.value
+                $nameCompanion.append(componion);
+            }
+            document.getElementById("BtnLS").addEventListener("click", () => {LS()});
+            function LS(){
+                event.preventDefault(); // функция предотвращает стандартное поведение формы (обновление странички при нажатии)
+                if(componion != null){
+                    socket.emit('private-room', componion);  // вызывает событие при нажатию на кнопку (отправка сообщение из текстового поля textarea)
+                }
+            }
+            // создать комнату для лс
+            socket.on('create-room', function(id){
+                socket.emit('leave-room');
+                socket.emit('join-room', id);
+            });
+
+            socket.on('new-chat', function() {
+                $dialog.empty();
+            });
+        });
+    </script>
+    </body>
+</html>
