@@ -12,8 +12,8 @@
     
     <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
       <header class="mb-auto">
-        <div>
-          <h3 class="float-md-start mb-0">Messenger</h3>
+        <div class="five">
+          <h1>Messenger</h1>
         </div>
       </header>
       <br><br><br>
@@ -25,7 +25,7 @@
             <textarea name="nameRoom" id="inputRoom" class="input_style" placeholder="Название комнаты"></textarea>
             <button id="BtnJoin" class="btn btn-danger" style="margin-bottom: 3ch;">Подключиться</button>
             <br>
-            <textarea name="nameCompanion" id="inputCompanion" class="input_style" placeholder="ТэТаТэТ"></textarea>
+            <label name="nameCompanion" id="nameCompanion" class="input_style" placeholder="ТэТаТэТ"></label>
             <button id="BtnLS" class="btn btn-danger" style="margin-bottom: 3ch;">Абщаца</button>
             <br>
             <div>
@@ -51,9 +51,10 @@
             var $message = $("#message");                    // обращается к текстовому полю для ввода смс
             var $dialog = $("#dialog");                      // обращается к полю, куда будут выводиться все смс
             var $nameUser = $("#inputName");                 // обращаемся к полю ввода нового имени
-            var $nameCompanion = $("#inputCompanion");       // обращаемся к полю ввода нового имени
+            var $nameCompanion = $("#nameCompanion");       // обращаемся к полю имени собеседника
             var $nameRoom = $("#inputRoom");                 // обращаемся к полю ввода комнаты
             var $nameSelect = $('#selectName');              // обращение к селектору для выбора онлайн-клиентов
+            var componion = null;
 
             // Вход в общий чат
             socket.emit('join-room', "general");
@@ -61,11 +62,13 @@
             document.getElementById("BtnUpdate").addEventListener("click", () => {UpdateNickname()});
             function UpdateNickname(){
                 event.preventDefault(); // функция предотвращает стандартное поведение формы (обновление странички при нажатии)
-                socket.emit('update-name-inroom', $nameUser.val());
+                if($nameUser.val())
+                    socket.emit('update-name-inroom', $nameUser.val());
             }
             // Сообщение пользователям, что клиент обновил ник
             socket.on('new-nick', function(data){
-                $dialog.append("<div>Пользователь <b>" + data.user.name + " </b> поменял никнейм на <b>" + data.newName + "</b></div>");
+                $dialog.append("<div class=\"container\" style=\"text-align:center;\">Пользователь <b>" + data.user.name + " </b> поменял никнейм на <b>" + data.newName + "</b></div>");
+                socket.emit('update-users');
             });
             // Подключиться к комнате (создать комнату)
             document.getElementById("BtnJoin").addEventListener("click", () => {JoinRoom()});
@@ -81,31 +84,48 @@
             document.getElementById("BtnSend").addEventListener("click", () => {SendMsg()});
             function SendMsg(){
                 event.preventDefault(); // функция предотвращает стандартное поведение формы (обновление странички при нажатии)
-                socket.emit('msg-room', {content: $message.val(), time: new Date().getHours() + ":" + new Date().getMinutes()+ ":" + new Date().getSeconds()});  // вызывает событие при нажатию на кнопку (отправка сообщение из текстового поля textarea)
-                $message.val(''); // очищаем текстовое поле после отправки смс
+                if($message.val()){
+                    socket.emit('msg-room', {content: $message.val(), time: new Date().getHours() + ":" + new Date().getMinutes()+ ":" + new Date().getSeconds()});  // вызывает событие при нажатию на кнопку (отправка сообщение из текстового поля textarea)
+                    $message.val(''); // очищаем текстовое поле после отправки смс
+                } 
             }
             // Вывести сообщение пользователям
             socket.on('add-msg', function(data){
-                $dialog.append("<div>" + data.time + " <b>" + data.User.name + "</b>: " + data.content + "</div>");
+                $dialog.append("<div class=\"container\"><p class=\"shrift-name\">" + 
+                    data.User.name + "</p><p class=\"shrift-content\">" + 
+                        data.content + "</p><span class=\"time-right\">" + 
+                            data.time + "</span></div>");
             });
             // Получить всех пользователей, которые онлайн
             socket.on('list-users', function(online) {
                 $nameSelect.empty();
                 for (let item of online) {       
-                    $nameSelect.append("<option value=\"" + item.name + "\">" + item.name + " [" + item.id + "]" + " </option>");
+                    $nameSelect.append("<option value=\"" + item.id + "\">" + item.name + " [" + item.id + "]" + " </option>");
                 }
             });
             // Отслеживать нажатие по списку пользователей
-            document.getElementById('selectId').onchange=function () {getValue(this);}
+            document.getElementById('selectName').onchange=function () {getValue(this);}
             function getValue(Obj){
-                $nameCompanion.append(Obj.value);
+                $nameCompanion.empty();
+                componion = Obj.value
+                $nameCompanion.append(componion);
             }
             document.getElementById("BtnLS").addEventListener("click", () => {LS()});
             function LS(){
                 event.preventDefault(); // функция предотвращает стандартное поведение формы (обновление странички при нажатии)
-                socket.emit('msg-room', {content: $message.val(), time: new Date().getHours() + ":" + new Date().getMinutes()+ ":" + new Date().getSeconds()});  // вызывает событие при нажатию на кнопку (отправка сообщение из текстового поля textarea)
-                $message.val(''); // очищаем текстовое поле после отправки смс
-            }   
+                if(componion != null){
+                    socket.emit('private-room', componion);  // вызывает событие при нажатию на кнопку (отправка сообщение из текстового поля textarea)
+                }
+            }
+            // создать комнату для лс
+            socket.on('create-room', function(id){
+                socket.emit('leave-room');
+                socket.emit('join-room', id);
+            });
+
+            socket.on('new-chat', function() {
+                $dialog.empty();
+            });
         });
     </script>
     </body>
