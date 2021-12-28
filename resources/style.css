@@ -3,9 +3,21 @@
 	padding: 3px;
 	margin-bottom: 5px;
     height: 50ch;
-	width: 40ch;
+	width: 100ch;
+	display: inline-block;
 	}
 .select_style{
 	height: 50ch;
-	width: 20ch;
+	width: 35ch;
+	display: inline-block;
+	margin-bottom: 9px;
+	padding: 3px;
+}
+.msg_style{
+	height: 10ch;
+	width: 135ch;
+}
+.input_style{
+	height: 4ch;
+	width: 42ch;
 }

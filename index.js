@@ -29,14 +29,19 @@ app.get('/pages/personal.html', function(request, response){
 
 var users = new Map();
 
-rooms = [];   // список комнат
+online = [];   // онлайн челы
 let count = 0;
 
  /* при подключении (событие) */
 io.sockets.on('connection', async (socket) => {
     console.log("Присоединился:", socket.id);
-    users.set(socket.id, new User("guest" + count++, socket.id));
-    io.emit('list-users', users);
+    users.set(socket.id, new User(socket.id, "guest" + count++));
+    online = [];
+    for (let item of users.keys()) {
+        
+        online.push(new User(item, users.get(item).name));
+    }
+    io.emit('list-users', online);
 
     socket.on('join-room', function(room){    // событие входа в комнату
         socket.join(room);
@@ -59,6 +64,7 @@ io.sockets.on('connection', async (socket) => {
 
         socket.on('leave-room', () =>{
             socket.leave(room);
+            socket.removeAllListeners('msg-room');
         });
     });
     
@@ -77,7 +83,11 @@ io.sockets.on('connection', async (socket) => {
         if(user){
             users.delete(socket.id);
             console.log("Отсоединился:", socket.id);
-            io.emit('disc-client', user);
+            online = [];
+            for (let item of users.keys()) {
+                online.push(new User(item, users.get(item).name));
+            }
+            io.emit('list-users', online);
         }  
     });
 

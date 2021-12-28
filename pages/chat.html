@@ -18,18 +18,21 @@
       </header>
       <br><br><br>
       <main class="px-3">
-        <h3>Чат</h3>
         <form>
-            <textarea name="nameUser" id="inputName" placeholder="Введите имя"></textarea>
-            <button id="BtnUpdate" class="btn btn-danger">Изменить ник</button>
+            <textarea name="nameUser" id="inputName" class="input_style" placeholder="Введите имя"></textarea>
+            <button id="BtnUpdate" class="btn btn-danger" style="margin-bottom: 3ch;">Изменить ник</button>
             <br>
-            <textarea name="nameRoom" id="inputRoom" placeholder="Название комнаты"></textarea>
-            <button id="BtnJoin" class="btn btn-danger">Подключиться</button>
+            <textarea name="nameRoom" id="inputRoom" class="input_style" placeholder="Название комнаты"></textarea>
+            <button id="BtnJoin" class="btn btn-danger" style="margin-bottom: 3ch;">Подключиться</button>
             <br>
-            <div id="dialog" class="border_style_double"></div>
-            <p><select multiple name="name[]" class="select_style" id="selectName"></select><select multiple name="id[]" class="select_style" id="selectId"></select></p>
+            <textarea name="nameCompanion" id="inputCompanion" class="input_style" placeholder="ТэТаТэТ"></textarea>
+            <button id="BtnLS" class="btn btn-danger" style="margin-bottom: 3ch;">Абщаца</button>
             <br>
-            <textarea name="message" id="message" class="form-control" placeholder="Введите сообщение"></textarea>
+            <div>
+                <div id="dialog" class="border_style_double"></div>
+                <select multiple name="name[]" class="select_style" id="selectName"></select>
+            </div>
+            <textarea name="message" id="message" class="msg_style" placeholder="Введите сообщение"></textarea>
             <br>
             <button id="BtnSend" class="btn btn-danger">Отправить</button>
         </form>
@@ -45,15 +48,15 @@
         $(function(){
             var socket = io.connect();  // при входе на страницу подключаемся к серверу (срабатывается событие connection)
 
-            var $message = $("#message");                   // обращается к текстовому полю для ввода смс
-            var $dialog = $("#dialog");                     // обращается к полю, куда будут выводиться все смс
+            var $message = $("#message");                    // обращается к текстовому полю для ввода смс
+            var $dialog = $("#dialog");                      // обращается к полю, куда будут выводиться все смс
             var $nameUser = $("#inputName");                 // обращаемся к полю ввода нового имени
+            var $nameCompanion = $("#inputCompanion");       // обращаемся к полю ввода нового имени
             var $nameRoom = $("#inputRoom");                 // обращаемся к полю ввода комнаты
-            var $nameSelect = $('#selectName');             // обращение к селектору для выбора онлайн-клиентов (имя)
-            var $idSelect = $('#selectId');                 // обращение к селектору для выбора онлайн-клиентов (айди)
+            var $nameSelect = $('#selectName');              // обращение к селектору для выбора онлайн-клиентов
 
             // Вход в общий чат
-            socket.on('join-room', "general");
+            socket.emit('join-room', "general");
             // Обновление ника
             document.getElementById("BtnUpdate").addEventListener("click", () => {UpdateNickname()});
             function UpdateNickname(){
@@ -86,25 +89,23 @@
                 $dialog.append("<div>" + data.time + " <b>" + data.User.name + "</b>: " + data.content + "</div>");
             });
             // Получить всех пользователей, которые онлайн
-            socket.emit('get-users');
-            // Вывести список пользователей
-            socket.on('set-users', function(data){
-                for(let item of data.names){
-                    $nameSelect.append("<option value=\"" + item + "\">" +item + "</option>");
-                }
-                for(let item of data.id){
-                    
-                    $idSelect.append("<option value=\"" + item + "\">" +item + "</option>");
+            socket.on('list-users', function(online) {
+                $nameSelect.empty();
+                for (let item of online) {       
+                    $nameSelect.append("<option value=\"" + item.name + "\">" + item.name + " [" + item.id + "]" + " </option>");
                 }
             });
             // Отслеживать нажатие по списку пользователей
             document.getElementById('selectId').onchange=function () {getValue(this);}
             function getValue(Obj){
-                $name.append(Obj.value);
+                $nameCompanion.append(Obj.value);
             }
-
-            
-            
+            document.getElementById("BtnLS").addEventListener("click", () => {LS()});
+            function LS(){
+                event.preventDefault(); // функция предотвращает стандартное поведение формы (обновление странички при нажатии)
+                socket.emit('msg-room', {content: $message.val(), time: new Date().getHours() + ":" + new Date().getMinutes()+ ":" + new Date().getSeconds()});  // вызывает событие при нажатию на кнопку (отправка сообщение из текстового поля textarea)
+                $message.val(''); // очищаем текстовое поле после отправки смс
+            }   
         });
     </script>
     </body>
