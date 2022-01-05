@@ -20,21 +20,24 @@
       <main class="px-3">
         <form>
             <textarea name="nameUser" id="inputName" class="input_style" placeholder="Введите имя"></textarea>
-            <button id="BtnUpdate" class="btn btn-danger" style="margin-bottom: 3ch;">Изменить ник</button>
+            <button id="BtnUpdate" class="btn btn-danger" style="margin-bottom: 3ch; border-radius: 10px;">Изменить ник</button>
             <br>
             <textarea name="nameRoom" id="inputRoom" class="input_style" placeholder="Название комнаты"></textarea>
-            <button id="BtnJoin" class="btn btn-danger" style="margin-bottom: 3ch;">Подключиться</button>
+            <button id="BtnJoin" class="btn btn-danger" style="margin-bottom: 3ch; border-radius: 10px;">Подключиться</button>
             <br>
             <label name="nameCompanion" id="nameCompanion" class="input_style" placeholder="ТэТаТэТ"></label>
-            <button id="BtnLS" class="btn btn-danger" style="margin-bottom: 3ch;">Абщаца</button>
+            <button id="BtnLS" class="btn btn-danger" style="margin-bottom: 3ch; border-radius: 10px;">Абщаца</button>
             <br>
-            <div>
-                <div id="dialog" class="border_style_double"></div>
-                <select multiple name="name[]" class="select_style" id="selectName"></select>
+            <div style="overflow: hidden;">
+                <div style="width: 100%;">
+                    <div class="div_for_select"><label>Онлайн</label><select name="name" class="select_style" id="selectName"></select></div>
+                    <div id="dialog" class="border_style_double"></div>
+                    <div class="div_for_select"><label>Комнаты</label><select name="room" class="select_style" id="selectRoom"></select></div>
+                </div>
             </div>
             <textarea name="message" id="message" class="msg_style" placeholder="Введите сообщение"></textarea>
             <br>
-            <button id="BtnSend" class="btn btn-danger">Отправить</button>
+            <button id="BtnSend" class="btn btn-danger" style="border-radius: 10px;">Отправить</button>
         </form>
       </main><br><br><br>
     
@@ -54,7 +57,9 @@
             var $nameCompanion = $("#nameCompanion");       // обращаемся к полю имени собеседника
             var $nameRoom = $("#inputRoom");                 // обращаемся к полю ввода комнаты
             var $nameSelect = $('#selectName');              // обращение к селектору для выбора онлайн-клиентов
+            var $rooms = $('#selectRoom');              // обращение к селектору для выбора онлайн-клиентов
             var componion = null;
+            var room = null;
 
             // Вход в общий чат
             socket.emit('join-room', "general");
@@ -78,7 +83,10 @@
                 {
                     socket.emit('leave-room');
                     socket.emit('join-room', $nameRoom.val());
-                }  
+                }else if(room != null){
+                    socket.emit('leave-room');
+                    socket.emit('join-room', room);
+                }
             }
             // Отправить сообщение
             document.getElementById("BtnSend").addEventListener("click", () => {SendMsg()});
@@ -103,12 +111,28 @@
                     $nameSelect.append("<option value=\"" + item.id + "\">" + item.name + " [" + item.id + "]" + " </option>");
                 }
             });
+            // Получить все комнаты пользователя
+            socket.on('list-rooms', function(hisRooms) {
+                $rooms.empty();
+                if(hisRooms != null){
+                    for (let item of hisRooms) {       
+                        $rooms.append("<option value=\"" + item + "\">" + item + "</option>");
+                    }
+                }
+            });
             // Отслеживать нажатие по списку пользователей
-            document.getElementById('selectName').onchange=function () {getValue(this);}
-            function getValue(Obj){
+            document.getElementById('selectName').onchange=function () {getUser(this);}
+            function getUser(Obj){
                 $nameCompanion.empty();
                 componion = Obj.value
                 $nameCompanion.append(componion);
+            }
+            // Отслеживать нажатие по списку пользователей
+            document.getElementById('selectRoom').onchange=function () {getRoom(this);}
+            function getRoom(Obj){
+                $nameRoom.val('');
+                room = Obj.value;
+                console.log(room);
             }
             document.getElementById("BtnLS").addEventListener("click", () => {LS()});
             function LS(){
@@ -126,6 +150,7 @@
             socket.on('new-chat', function() {
                 $dialog.empty();
             });
+            
         });
     </script>
     </body>

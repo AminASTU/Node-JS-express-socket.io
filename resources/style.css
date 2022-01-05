@@ -2,32 +2,40 @@
 	border: 2px double white;
 	padding: 3px;
 	margin-bottom: 5px;
+	margin-left: 5px;
     height: 50ch;
-	width: 100ch;
-	display: inline-block;
+	width: 85ch;
+	float: left;
 	overflow-y: scroll; /* прокрутка по вертикали */
 	}
-.select_style{
+.div_for_select{
 	height: 50ch;
 	width: 35ch;
-	display: inline-block;
+	float: left;
+	margin-left: 5px;
+}
+.select_style{
+	width: 35ch;
+	
 	margin-bottom: 9px;
 	padding: 3px;
 }
 .msg_style{
 	height: 10ch;
 	width: 135ch;
+	border-radius: 10px;
 }
 .input_style{
 	height: 4ch;
 	width: 42ch;
+	border-radius: 10px;
 }
 
 /* Chat containers */
 .container {
 	border: 2px solid black;
     background-color: cadetblue;
-    border-radius: 5px;
+    border-radius: 25px;
     padding: 10px;
 	text-align: justify;
     margin: 10px 0;

@@ -28,12 +28,8 @@ var users = new Map();
 var story = new Map();
 privates = []; // лс
 online = [];   // онлайн челы
+rooms = new Map();    // комнаты <socket.id, room[]>
 let count = 0;
-
-// Обновление ника в общем списке
-const updateNick = (username) => {
-    
-};
 
 // Если такая приватная комната уже создана
 const findPrivateRoom = (id) => {
@@ -52,15 +48,38 @@ const findPrivateRoomById = (first, second) => {
     }
     return null;
 }
+
+// получение комнат
+const getRooms = (idUser) => {
+    if(rooms.has(idUser)){  // Если у такого польз уже есть беседы
+        return rooms.get(idUser);
+    }
+    return null;
+}
+// Добавление комнаты челу
+function addNewRoomForClient(idUser, room){
+    if(rooms.has(idUser)){  // Если у такого польз уже есть беседы
+        for(let item of rooms.get(idUser)){ // идем по его беседам
+            if(item === room){  // если беседа уже добавлена
+                return null;
+            }
+        }
+        var userRoom = rooms.get(idUser);   // иначе добавляем эту беседу
+        userRoom.push(room); // добавили :D
+    }
+}
 story.set("general", []);
 
  /* при подключении (событие) */
 io.sockets.on('connection', async (socket) => {
     console.log("Присоединился:", socket.id);
     users.set(socket.id, new User(socket.id, "guest" + count++));
+    tmp = [];
+    tmp.push("general");
+    rooms.set(socket.id, tmp);
+    
     online = [];
     for (let item of users.keys()) {
-        
         online.push(new User(item, users.get(item).name));
     }
     io.emit('list-users', online);
@@ -68,8 +87,13 @@ io.sockets.on('connection', async (socket) => {
     socket.on('join-room', function(room){    // событие входа в комнату
         
         idRoom = findPrivateRoom(room);
-        // Если подкл не в приватную комнату
-        if (idRoom != null && idRoom.firstID != socket.id && idRoom.secondID != socket.id) {return;}    
+        // Если подкл в приватную комнату
+        if (idRoom != null && idRoom.firstID != socket.id && idRoom.secondID != socket.id) {return;}   
+        
+        addNewRoomForClient(socket.id, room);
+        hisRooms = [];
+        hisRooms = rooms.get(socket.id);
+        socket.emit('list-rooms', hisRooms);
 
         socket.removeAllListeners('msg-room');
         socket.join(room);
